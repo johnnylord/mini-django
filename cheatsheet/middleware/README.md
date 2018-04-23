@@ -1,1 +1,0 @@
-需要將test_module/整個資料夾放到/usr/local/lib/python3.5/dist_packages/目錄下,才可以dynamic import

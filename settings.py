@@ -1,0 +1,3 @@
+MIDDLEWARE = [
+    'middleware.TestModule.TestModule'
+]

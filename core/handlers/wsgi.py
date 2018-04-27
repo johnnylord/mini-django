@@ -1,6 +1,5 @@
 from core.handlers import base
 
-
 class WSGIHandler(base.BaseHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

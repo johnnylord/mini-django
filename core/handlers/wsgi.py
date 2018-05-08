@@ -13,5 +13,5 @@ class WSGIHandler(base.BaseHandler):
                 ('Content-Length', str(len(response)))
             ]
         start_response(status, response_headers)
-
+        
         return [bytes(response, encoding = "utf8")] 

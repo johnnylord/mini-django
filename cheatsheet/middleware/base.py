@@ -8,16 +8,12 @@ class BaseHandler:
         class_name = "TestModule"
         module = import_module("test_module.test_module")
         
-        middleware = getattr(module,class_name)
-
+        middleware = getattr(module,class_name)#class type
         handler = convert_exception_to_response(self._get_response)
-        mw_instance = middleware(handler)
-        print(middleware)   
-        # handler = convert_exception_to_response(middleware) 
+        mw_instance = middleware(handler)#create a class type object
 
         self._middleware_chain = convert_exception_to_response(mw_instance)
-
-
+        
     def get_response(self,request):
         print("middleware get response")
         response = self._middleware_chain(request)
@@ -34,9 +30,14 @@ class BaseHandler:
 
 
 
+#decorators https://www.cnblogs.com/myd7349/p/how_to_use_wraps_of_functools.html
 def convert_exception_to_response(get_response):
+    """
+    
+    """
     @wraps(get_response)
     def inner(request):
+        print("decorators")
         response = get_response(request)
         return response
     return inner

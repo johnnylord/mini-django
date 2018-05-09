@@ -5,9 +5,7 @@ class TestModule(MiddlewareMixin):
         super().__init__(get_response)
         
     def process_request(self,request):
-        print("process_request")
+        pass
         
     def process_response(self,request,response):
-        print("process_response")
-        #response['Location'] = "https://127.0.0.1:8000/"
         return response

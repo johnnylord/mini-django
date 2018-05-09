@@ -20,9 +20,9 @@ def application(environ, start_response):
             #'hello,eric'
         ]
     
-    print(response_body)
+    print(type(response_body))
     response_body = '\n'.join(response_body)
-    print(response_body)
+    print(type(response_body))
 
     # HTTP response code and message
     status = '200 OK'

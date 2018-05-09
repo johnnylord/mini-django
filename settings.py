@@ -1,5 +1,8 @@
 MIDDLEWARE = [
-    'middleware.TestModule.TestModule'
+    'middleware.TestModule.TestModule',
+    'middleware.security.SecurityMiddleware',
 ]
 
-SECURE_SSL_REDIRECT = False
+ALLOWED_HOSTS = []
+
+SECURE_SSL_REDIRECT = True

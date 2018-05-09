@@ -68,24 +68,24 @@ class Manager(BaseManager):
     def __init__(self, username="sqlite", password="sqlite"):
         super().__init__(username, password)                 
     	# Check if the database is empty
-	self.cursor.execute("SELECT name from sqlite_master WHERE type='table'")
-	if len(self.cursor.fetchall()) == 0:
+	    self.cursor.execute("SELECT name from sqlite_master WHERE type='table'")
+	    if len(self.cursor.fetchall()) == 0:
 		
 		# Create User table
-		self.cursor.execute(
-				"CREATE TABLE users (username TEXT PRIMARY KEY, password TEXT NOT NULL, email TEXT NOT NULL);"
-			)
-		
-		# Create transaction table
-		self.cursor.execute(
-				"CREATE TABLE trans (tid INTEGER PRIMARY KEY AUTOINCREMENT, date DATE NOT NULL, money INTEGER NOT NULL, note TEXT);"
-			)
+            self.cursor.execute(
+                    "CREATE TABLE users (username TEXT PRIMARY KEY, password TEXT NOT NULL, email TEXT NOT NULL);"
+                )
+            
+            # Create transaction table
+            self.cursor.execute(
+                    "CREATE TABLE trans (tid INTEGER PRIMARY KEY AUTOINCREMENT, date DATE NOT NULL, money INTEGER NOT NULL, note TEXT);"
+                )
 
-		# Insert admin user into the user table
-		self.cursor.execute(
-				"INSERT INTO users (username, password, email) VALUES ('admin', 'admin', 'example@gmail.com');"
-			)
-		self.db.commit()
+            # Insert admin user into the user table
+            self.cursor.execute(
+                    "INSERT INTO users (username, password, email) VALUES ('admin', 'admin', 'example@gmail.com');"
+                )
+            self.db.commit()
 
     def sql(self, cmd):
         """SQL command(cmd) to select the data from the table"""

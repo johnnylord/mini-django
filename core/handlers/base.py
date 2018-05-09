@@ -1,11 +1,14 @@
 from importlib import import_module
 from functools import wraps
 from utils.module_loading import import_string
+from utils.loggit import register
+from utils.color import Color
 import settings
 
 class BaseHandler:
     _middleware_chain = None 
 
+    @register(Color.RED)
     def load_middleware(self):
         """
         最終產物是_middleware_chain,是request的進入點

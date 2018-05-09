@@ -45,9 +45,9 @@ html = """
 class WSGIHandler(base.BaseHandler):
     def __init__(self,*arg,**kwargs):
         self.load_middleware()
-        print("1")
     def __call__(self,environ, start_response):
             # Returns a dictionary in which the values are list
+        print("response")
         self.get_response(environ)
         
         d = parse_qs(environ['QUERY_STRING'])

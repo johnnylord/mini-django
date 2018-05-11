@@ -16,6 +16,5 @@ class WSGIHandler(base.BaseHandler):
                 ('Content-Length', str(len(response)))
             ]
         start_response(status, response_headers)
-        #start_response('302 found', [('Location','https://tw.yahoo.com/')])
-
+        
         return [response]

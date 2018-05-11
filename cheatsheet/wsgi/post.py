@@ -62,7 +62,7 @@ def application(environ, start_response):
     ]
 
     start_response(status, response_headers)
-    return [bytes(response_body, encoding = "utf8")]
+    return [response_body]
 
 httpd = make_server('localhost', 8000, application)
 httpd.serve_forever()

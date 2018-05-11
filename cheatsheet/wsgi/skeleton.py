@@ -17,7 +17,6 @@ def application(environ, start_response):
     # Build the response body possibly
     response_body = [
             '%s: %s' % (key, value) for key, value in sorted(environ.items())
-            #'hello,eric'
         ]
     
     print(type(response_body))
@@ -38,7 +37,7 @@ def application(environ, start_response):
     start_response(status, response_headers)
 
     # Return the response body.
-    return [bytes(response_body, encoding = "utf8")] 
+    return [response_body] 
 
 # Instantiate the server
 httpd = make_server('localhost', 8000, application)

@@ -17,4 +17,4 @@ class WSGIHandler(base.BaseHandler):
             ]
         start_response(status, response_headers)
         
-        return [response]
+        return [bytes(response, encoding='utf-8')]

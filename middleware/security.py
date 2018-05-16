@@ -13,7 +13,12 @@ class SecurityMiddleware(MiddlewareMixin):
     """
     def __init__(self, get_response=None):
         super().__init__(get_response)
+        self.sts_seconds = settings.SECURE_HSTS_SECONDS
+        self.sts_include_subdomains = settings.SECURE_HSTS_INCLUDE_SUBDOMAINS
+        self.sts_preload = settings.SECURE_HSTS_PRELOAD
         self.redirect = settings.SECURE_SSL_REDIRECT
+        self.content_type_nosniff = settings.SECURE_CONTENT_TYPE_NOSNIFF
+
 
     def process_request(self, request):
         if self.redirect and request['HTTP_HOST'] and request['wsgi.url_scheme'] != "https":
@@ -21,6 +26,17 @@ class SecurityMiddleware(MiddlewareMixin):
             # return HttpResponsePermanentRedirect to https
 
     def process_response(self, request, response):
+        if (self.sts_seconds and 'strict-transport-security' not in response):
+            sts_header = "max-age=%s" % self.sts_seconds      
+            if self.sts_include_subdomains:
+                sts_header = sts_header + "; includeSubDomains"
+            if self.sts_preload:
+                sts_header = sts_header + "; preload"
+            response["strict-transport-security"] = sts_header
+
+        if self.content_type_nosniff and 'x-content-type-options' not in response:
+            response["x-content-type-options"] = "nosniff"
+
         return response
         
 

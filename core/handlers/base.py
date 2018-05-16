@@ -3,6 +3,8 @@ from functools import wraps
 from utils.module_loading import import_string
 from utils.loggit import register
 from utils.color import Color
+from mini_http.response import HttpResponse
+
 import settings
 
 class BaseHandler:
@@ -50,4 +52,4 @@ class BaseHandler:
             '%s: %s' % (key, value) for key, value in sorted(request.items())
         ]
         response = '\n'.join(response)
-        return response #return回上一層的middleware並且執行process_response,再一層一層的
+        return HttpResponse(response) #return回上一層的middleware並且執行process_response,再一層一層的

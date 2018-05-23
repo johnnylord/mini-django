@@ -4,7 +4,8 @@ from utils.module_loading import import_string
 from utils.loggit import register
 from utils.color import Color
 from mini_http.response import HttpResponse
-
+from urls import extractViewFromUrlPattern
+from urls import urlPattern
 import settings
 
 class BaseHandler:
@@ -47,9 +48,28 @@ class BaseHandler:
         5. if response has render ,and call process_template_response
         6. return response to browser
         """
-
-        response = [
-            '%s: %s' % (key, value) for key, value in sorted(request.items())
-        ]
+        print(request)
+        urlRoute = request.path_info
+        print(urlRoute)
+        view = extractViewFromUrlPattern(urlPattern, urlRoute)
+        #response = [
+        #    '%s: %s' % (key, value) for key, value in sorted(request.items())
+        #]
+        if view == False :
+            response = """
+            <html>
+                <head>
+                    <title>Test</title>
+                </head>
+                <body>
+                Hello World
+                </body>
+            </html>
+            """
+        else :
+            response = [
+                 view()
+            ]
+        print(response)
         response = '\n'.join(response)
         return HttpResponse(response) #return回上一層的middleware並且執行process_response,再一層一層的

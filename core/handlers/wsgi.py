@@ -41,10 +41,11 @@ class WSGIHandler(base.BaseHandler):
     def __call__(self, environ, start_response):
 
         request = WSGIRequest(environ)
-        response = self.get_response(environ)
+        response = self.get_response(request)
     
         status = '%d %s' % (response.status_code, response.reason_phrase)
         response['Content-Length'] = str(len(response))
+        response["Content-Type"] = "text/html"
         response_headers = list(response.items())
     
         start_response(status, response_headers)

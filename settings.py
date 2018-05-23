@@ -1,6 +1,6 @@
 MIDDLEWARE = [
     'middleware.TestModule.TestModule',
-    'middleware.security.SecurityMiddleware',
+#    'middleware.security.SecurityMiddleware',
 ]
 
 ALLOWED_HOSTS = []

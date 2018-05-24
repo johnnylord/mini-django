@@ -70,4 +70,5 @@ class BaseHandler:
                  view()
             ]
         response = '\n'.join(response)
-        return HttpResponse(response) #return回上一層的middleware並且執行process_response,再一層一層的
+        #return回上一層的middleware並且執行process_response,再一層一層的
+        return HttpResponse(response) 

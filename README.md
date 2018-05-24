@@ -27,7 +27,7 @@ Security_Middleware提供許多種在request和response階段的安全性的強�
 在response回傳至使用者之前,在response中加上安全性的限制參數
 * <b>SECURE_HSTS_SECONDS</b>
 如果設立的值為非0數字,則會在所有沒有設定HTTP Strict Transport Security header的Response中加上他
-* <b>SECURE_HSTS_INCLUDE_SUBDOMAINS</b>
+* <b>SECURE_HSTS_![](https://i.imgur.com/9ZLnpww.png)INCLUDE_SUBDOMAINS</b>
 如果是True,會將includeSubDomains 加到HTTP Strict Transport Security header. 假如SECURE_HSTS_SECONDS是設定非0整數,則才會有效 
 * <b>SECURE_HSTS_PRELOAD</b>
 如果是True,會將preload 加到HTTP Strict Transport Security header. 假如SECURE_HSTS_SECONDS是設定非0整數,則才會有效 
@@ -54,3 +54,10 @@ Security_Middleware提供許多種在request和response階段的安全性的強�
     * 回傳response content的大小
 * HttpResponse.make_bytes(value):
     * 將response content轉換成bytes的型態
+    
+## Url Router Structure
+***
+![](https://i.imgur.com/9ZLnpww.png)
+#### 1. ExtractViewFromUrlPatterm depends on different url return different view function
+#### 2. Setting your url handler and view (customize) in app directory (for user)
+#### 3. Definded extractViewFromUrlPattern and path in utils.py

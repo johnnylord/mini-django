@@ -31,10 +31,12 @@ def runserver(port):
     Run a server on a specific port number
     """
     try:
+        print(Color.GREEN + "\nRun server at {}:{}\n".format('localhost', port) + Color.ENDC)
         httpd = make_server('localhost', port, WSGIHandler())
         httpd.serve_forever()
     except Exception as exception:
         print("Exception type", type(exception).__name__)
+        print(str(exception))
 
 
 def start_app(app_name):

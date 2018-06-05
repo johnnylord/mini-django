@@ -45,7 +45,6 @@ class WSGIHandler(base.BaseHandler):
     
         status = '%d %s' % (response.status_code, response.reason_phrase)
         response['Content-Length'] = str(len(response))
-        response["Content-Type"] = "text/html"
         response_headers = list(response.items())
     
         start_response(status, response_headers)

@@ -3,5 +3,5 @@ from app.view import index
 
 
 urlPattern = [
-    path("/index/",index),
+    path("//",index),
 ]

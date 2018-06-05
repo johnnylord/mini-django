@@ -51,9 +51,7 @@ class BaseHandler:
         # get request url
         urlRoute = request.path_info
         view = extractViewFromUrlPattern(urlPattern, urlRoute)
-        #response = [
-        #    '%s: %s' % (key, value) for key, value in sorted(request.items())
-        #]
+
         if view == False :
             response = """
             <html>
@@ -65,10 +63,10 @@ class BaseHandler:
                 </body>
             </html>
             """
+            response = '\n'.join(response)
+            response = HttpResponse(response) 
+            response["Content-Type"] = "text/html"
         else :
-            response = [
-                 view()
-            ]
-        response = '\n'.join(response)
+            response = view(request)
         #return回上一層的middleware並且執行process_response,再一層一層的
-        return HttpResponse(response) 
+        return response

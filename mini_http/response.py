@@ -15,7 +15,11 @@ class HttpResponseBase:
             if not 100 <= self.status_code <= 599:
                 raise ValueError('HTTP status code must be an integer from 100 to 599.')
         self._reason_phrase = None
-        self['Content-Type'] = 'text/plain'
+
+        if content_type is None:
+            content_type = "text/plain"
+
+        self['Content-Type'] = content_type
     
     @property
     def reason_phrase(self):

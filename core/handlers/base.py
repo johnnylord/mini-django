@@ -47,9 +47,24 @@ class BaseHandler:
         6. return response to browser
         """
         # get request url
-        path_info = request.path_info
-        
+        urlRoute = request.path_info
+        view = extractViewFromUrlPattern(urlPattern, urlRoute)
 
-        response = '\n'.join(response)
+        if view == False :
+            response = """
+            <html>
+                <head>
+                    <title>Test</title>
+                </head>
+                <body>
+                Hello World
+                </body>
+            </html>
+            """
+            response = '\n'.join(response)
+            response = HttpResponse(response) 
+            response["Content-Type"] = "text/html"
+        else :
+            response = view(request)
         #return回上一層的middleware並且執行process_response,再一層一層的
-        return HttpResponse(response) 
+        return response

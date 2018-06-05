@@ -1,4 +1,4 @@
-from codegen import CodeBuilder
+from template.codegen import CodeBuilder
 import sys
 import re
 
@@ -122,8 +122,7 @@ class HtmlTemplite(object):
         coder.add_line("return ''.join(result)")
         coder.dedent()
         # ---------- Codegen end ----------#
-
-        print(coder)
+        
         self._render_function = coder.get_namespace()['render_function']
     
     def _expr_code(self, expr): 

@@ -1,11 +1,13 @@
 import os
 import sys
+
+os.environ.setdefault('SETTING_MODULE', 'mysite.settings')
+
 import json
 from utils.color import Color
 from utils.template.project import SettingTemplate, AppTemplate
 from core.handlers.wsgi import WSGIHandler
 from wsgiref.simple_server import make_server
-
 
 def usage():
     """
@@ -81,6 +83,7 @@ SUPPORT_CMD = {
         'function': start_app,
     },
 }
+
 
 if __name__ == "__main__":
 

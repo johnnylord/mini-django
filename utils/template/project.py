@@ -1,30 +1,38 @@
 import os 
+from .codegen import CodeBuilder
 
 class SettingTemplate:
 
     FILES = {
-        'settings.py':{
-            'import':[],
-            'MIDDLEWARE':[
-                "'middleware.TestModule.TestModule'",
-                "'middleware.security.SecurityMiddleware'",
+        'settings.py':[
+            'import os\n',
+            'BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n',
+            'URL_ROOT = "project.urls"\n',
+            'MIDDLEWARE = [',
+            [
+                repr('middleware.TestModule.TestModule')+",",
+                repr('middleware.security.SecurityMiddleware')+",",
             ],
-            'ALLOWED_HOSTS':[],
-            'SECURE_SSL_REDIRECT':True,
-            'SECURE_HSTS_SECONDS':False,
-            'SECURE_HSTS_INCLUDE_SUBDOMAINS':False,
-            'SECURE_HSTS_PRELOAD':False,
-            'SECURE_CONTENT_TYPE_NOSNIFF':False,
-        },
+            ']\n',
+            'ALLOWED_HOSTS = [',
+            ']\n',
+            'SECURE_SSL_REDIRECT = True',
+            'SECURE_HSTS_SECONDS = False',
+            'SECURE_HSTS_INCLUDE_SUBDOMAINS = False',
+            'SECURE_HSTS_PRELOAD = False',
+            'SECURE_CONTENT_TYPE_NOSNIFF = False',
+        ],
 
-        'urls.py':{
-            'import':[
-                'from urls.utils import path',
+        'urls.py':[
+            'from urls.utils import url\n',
+            'urlpatterns = [',
+            [
+                'url("/index/", index)'+",",
             ],
-            'urlpatterns':[
-                'path("/index/", index)',
-            ],
-        }    
+            ']',
+        ],
+
+        '__init__.py':[],
     }
 
     def __init__(self, path=".", project_name="project"):
@@ -32,40 +40,36 @@ class SettingTemplate:
         self.project_name = project_name
         self.project_dir = path +"/"+ project_name
 
-    def render(self, f, context):
-        keylist = context.keys()
-        keylist = sorted(keylist)
-
-        for key in keylist:
-            content = context[key]
-
-            if key == 'import':
-                f.write('\n'.join(content))
-                f.write('\n\n')
+    def _render_list(self, coder, args):
+        coder.indent()
+        for arg in args:
+            if type(arg) == list:
+                self._render_list(coder, arg)
                 continue
+            coder.add_line(arg)
+        coder.dedent()
             
-            # Type of content( List, Bool )
-            if type(content) == list:
-                f.write('\n')
-                f.write('{} = [\n'.format(key))
-                for line in content:
-                    f.write('\t{},\n'.format(line))
-                f.write(']\n')
+    def render(self, f, source_code):
+        coder = CodeBuilder()
 
-            elif type(content) == bool:
-                f.write('\n')
-                if content == True:
-                    f.write('{} = True\n'.format(key))
-                else:
-                    f.write('{} = False\n'.format(key))
+        for line in source_code:
+            if type(line) == list:
+                self._render_list(coder, line)
+                continue
+
+            if line.startswith("URL_ROOT") and self.project_name != "project":
+                line = "URL_ROOT = {}.urls".format(repr(self.project_name))
+
+            coder.add_line(line)
+        f.write(str(coder)) 
 
     def construct(self):
         # Create the project setting directory
         try:
             os.mkdir(self.project_dir)
-            for fpath, context in self.FILES.items():
+            for fpath, source_code in self.FILES.items():
                 with open(self.project_dir+"/"+fpath, 'w') as f:
-                    self.render(f, context)
+                    self.render(f, source_code)
 
         except Exception as exception:
             print("Exception type", type(exception).__name__)
@@ -76,21 +80,22 @@ class SettingTemplate:
 class AppTemplate:
 
     FILES = {
-        'urls.py':{
-            'import':[
-                'from urls.utils import path',
+        'urls.py':[
+            'from urls.utils import url\n',
+            'urlpatterns = [',
+            [
+                'url("/index/", index)'+",",
             ],
-            'urlpatterns':[
-                'path("/index/", index)',
+            ']',
+        ],
+        'views.py':[
+            'def index(request):',
+            [
+                'pass',
             ],
-        },
-        'views.py':{
-            'import':[],
-            'function':{
-                'name':'index',
-                'comment':'process request...'
-            },
-        }
+        ],
+
+        '__init__.py':[]
     }
     
     def __init__(self, path=".", app_name="home"):
@@ -98,45 +103,32 @@ class AppTemplate:
         self.app_name = app_name
         self.app_dir = path +"/"+ app_name
 
-    def render(self, f, context):
-        keylist = context.keys()
-        keylist = sorted(keylist)
-
-        for key in keylist:
-            content = context[key]
-
-            if key == 'import':
-                f.write('\n'.join(content))
-                f.write('\n\n')
+    def _render_list(self, coder, args):
+        coder.indent()
+        for arg in args:
+            if type(arg) == list:
+                self._render_list(coder, arg)
                 continue
+            coder.add_line(arg)
+        coder.dedent()
+            
+    def render(self, f, source_code):
+        coder = CodeBuilder()
 
-            if key == 'function':
-                f.write('def {}(request):\n'.format(content['name']))
-                f.write('\t"""\n\t{}\n\t"""\n\tpass'.format(content['comment']))
+        for line in source_code:
+            if type(line) == list:
+                self._render_list(coder, line)
                 continue
- 
-            # Type of content( List, Bool )
-            if type(content) == list:
-                f.write('\n')
-                f.write('{} = [\n'.format(key))
-                for line in content:
-                    f.write('\t{},\n'.format(line))
-                f.write(']\n')
-
-            elif type(content) == bool:
-                f.write('\n')
-                if content == True:
-                    f.write('{} = True\n'.format(key))
-                else:
-                    f.write('{} = False\n'.format(key))
+            coder.add_line(line)
+        f.write(str(coder)) 
 
     def construct(self):
         # Create the project setting directory
         try:
             os.mkdir(self.app_dir)
-            for fpath, context in self.FILES.items():
+            for fpath, source_code in self.FILES.items():
                 with open(self.app_dir + "/" + fpath, 'w') as f:
-                    self.render(f, context)
+                    self.render(f, source_code)
 
         except Exception as exception:
             print("Exception type", type(exception).__name__)

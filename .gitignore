@@ -3,3 +3,4 @@ VENV
 __pycache__/
 *.pyc
 .vscode/
+Makefile

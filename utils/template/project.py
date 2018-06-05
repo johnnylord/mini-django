@@ -16,6 +16,15 @@ class SettingTemplate:
             ']\n',
             'ALLOWED_HOSTS = [',
             ']\n',
+            'TEMPLATES = [',
+            [
+                '{',
+                [
+                    repr('DIRS')+" : [],",  
+                ],
+                '},',
+            ],
+            ']\n',
             'SECURE_SSL_REDIRECT = True',
             'SECURE_HSTS_SECONDS = False',
             'SECURE_HSTS_INCLUDE_SUBDOMAINS = False',
@@ -24,7 +33,7 @@ class SettingTemplate:
         ],
 
         'urls.py':[
-            'from urls.utils import url\n',
+            'from urls.resolver import url\n',
             'urlpatterns = [',
             [
                 'url("/index/", index)'+",",

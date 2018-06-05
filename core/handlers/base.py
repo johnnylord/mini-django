@@ -1,10 +1,15 @@
+import os
 from importlib import import_module
 from functools import wraps
 from utils.module_loading import import_string
 from utils.loggit import register
 from utils.color import Color
 from mini_http.response import HttpResponse
-import settings
+from urls.resolver import UrlResolver 
+
+setting_path = os.environ.get('SETTING_MODULE')
+settings = import_module(setting_path)
+
 
 class BaseHandler:
     _middleware_chain = None 
@@ -48,8 +53,10 @@ class BaseHandler:
         """
         # get request url
         urlRoute = request.path_info
-        view = extractViewFromUrlPattern(urlPattern, urlRoute)
+        resolver = UrlResolver(settings.URL_ROOT)
+        (args, kwargs, view) = resolver.resolve_url(urlRoute)
 
+        # response = view(request, *args, **kwargs)
         if view == False :
             response = """
             <html>

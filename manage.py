@@ -1,7 +1,7 @@
 import os
 import sys
 
-os.environ.setdefault('SETTING_MODULE', 'mysite.settings')
+os.environ.setdefault('SETTING_MODULE', 'project.settings')
 
 import json
 from utils.color import Color

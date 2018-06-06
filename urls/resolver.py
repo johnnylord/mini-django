@@ -3,37 +3,59 @@ import re
 from importlib import import_module
 
 class UrlResolver(object):
-    """
-    Based on urlpatterns in the url_config module.
-    resolve the url mapping problem.
+    """Help resolve the url routing task
+    
+    [Public methods]:
+    resolve_url --- resolve the url routing task
+
+    [Description]:
+        help user resolve the url routing task. Find the associated
+    view handler for sepcific url.
     """
 
     def __init__(self, url_config_path):
-        """
-        'self.urlpatterns':
-            a list of url pattern with each entry associated with a handler
-        """
-        url_config = import_module(url_config_path)
+        """Construct a urlResolver with a specific urlpatterns list
 
+        [Keyword argument]:
+        url_config_path --- the path to the module containing 'urlpatterns'
+                            list, which store the essential information of
+                            url routing task.
+        [Attributes]:
+        urlpatterns --- a list containing the information of url routing.
+                        e.g: regex --> view
+        """
         try:
+            # Dynamically import the module based on the path
+            url_config = import_module(url_config_path)
+
             # load the urlpatterns from the url_config module
             self.urlpatterns = getattr(url_config, 'urlpatterns')
-        except AttributeError as e:
-            print(str(e)) 
-            sys.exit(1)
+        except:
+            raise
 
     def resolve_url(self, path):
-        """
-        Based on the parameter 'path', return a specific view function along with
-        args, kwargs which would be passed to view function later.
+        """Resolve the url and return the view handler
+
+        [Keyword arguments]:
+        path --- the url path to resolve.
+
+        [Return]:
+        args --- the arguments which will pass to view later
+        kwargs --- the keyword argument which will pass to view later
+        view --- the handler to process the request
+
+        [Description]:
+            Based on the 'path', find the associated view handler.
         """
         urlpatterns = self.urlpatterns
+        
+        # args and kwargs which will pass to view handler later
         view_args = []
         view_kwargs = {}
 
         # Iterate through the regex pattern object in the urlpatterns
         for regex_pattern in urlpatterns:
-            (args, kwargs, remain_path, view) = regex_pattern.resolve_path(path)
+            (args, kwargs, sub_path, view) = regex_pattern.resolve_path(path)
 
             # Update the args and kwargs
             if args:
@@ -41,10 +63,11 @@ class UrlResolver(object):
             if kwargs:
                 view_kwargs.update(kwargs)
 
-            if view and remain_path:
-                # If remain_path is not empty, then the view must be a UrlResolver object
-                # Call another UrlResolver to resolve the remaining_url
-                (args, kwargs, view) = view.resolve_url(remain_path)
+            if view and sub_path:
+                # If sub_path is not empty, then the view must be another
+                # UrlResolver object, which will process the sub_path further
+                another_resolver = view
+                (args, kwargs, view) = another_resolver.resolve_url(sub_path)
 
                 # update the args and kwargs from another urlresolver
                 if args:
@@ -54,12 +77,11 @@ class UrlResolver(object):
 
                 # return (args, kwargs, view) from another urlresolver
                 return view_args, view_kwargs, view
-        
-            elif view and not remain_path:
-                # If remain_path is empty, then the view function is found
+            elif view and not sub_path:
+                # If sub_path is empty, then the view function is found
                 return view_args, view_kwargs, view
             else:
-                # Keep searching matching pattern
+                # Keep finding matching regex pattern
                 pass
         
         # There is no matching.
@@ -67,19 +89,48 @@ class UrlResolver(object):
 
 
 class RegexPattern(object):
-    """
-    A one-to-one relationship between a url regex and a view handler
+    """A one-to-one mapping between a url regex and a view handler
+
+    [Public methods]:
+    resolve_path --- try to match the url path, and return
+                    the registered view handler.
+
+    [Description]:
+        Keep the relationship between a url regex and a view handler,
+    which will be refered by urlresolver later.
     """
 
     def __init__(self, regex, view):
-        """
-        'self.regex': the regular expression for a specific url pattern
-        'self.view': the view handler
+        """Construct the mapping of url regex and view handler
+
+        [Keyword arguments]:
+        regex --- the regular expression for a specific url pattern
+        view --- the view handler
+
+        [Attributes]:
+        regex --- compiled regular expression object
+        view --- the view handler
         """
         self.regex = re.compile(regex)
         self.view = view
 
     def resolve_path(self, path):
+        """Resolve the url path
+
+        [Keyword arguments]:
+        path --- the url path inforamtion
+
+        [Return]:
+        args --- the arguments matched in regex
+        kwargs --- the keyword arguments matched in regex
+        sub_path --- the remaining path
+        view --- the object registered on the regex
+
+        [Description]:
+            Try to match the path with the regex. If matched, return 
+        the view handler and some accompany information, otherwise return
+        the original information.
+        """
         match = self.regex.search(path)
  
         if match:
@@ -89,22 +140,34 @@ class RegexPattern(object):
         return (None, None, path, None)
             
 
-def url(url_pattern, view):
+def url(regex, view):
+    """Helper function to construct a RegexPattern object
+    
+    [Keyword arguments]:
+    regex --- the regular expression specification
+    view --- the handler object
+
+    [Return]
+    a RegexPattern object
     """
-    helper function to construct a RegexPattern object
-    """
-    return RegexPattern(url_pattern, view)
+    return RegexPattern(regex, view)
 
 def include(url_config_path):
-    """
-    helper function to construct a UrlResolver object
+    """Helper function to construct a UrlResolver object
+    
+    [Keyword arguments]:
+    url_config_path --- the path to the module containg urlpatterns
+                        variable.
+
+    [Return]
+    a UrlResolver object
     """
     return UrlResolver(url_config_path)
 
 
 if __name__ == '__main__':
 
-    resolver = UrlResolver('urls')
+    resolver = UrlResolver('root')
 
     case0 = 'null/'
     case1 = 'admin/'

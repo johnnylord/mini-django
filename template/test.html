@@ -5,14 +5,3 @@ My name is {{ name }}
 {% for i in numbers %}
 	Hello world {{ i }}
 {% endfor %}
-
-{% if name %}
-	I have a name
-	{% for i in numbers %}
-		In the 'if' tag {{ i }}
-	{% endfor %}
-{% endif %}
-
-{% if invalid %}
-	I should not appear.
-{% endif %}

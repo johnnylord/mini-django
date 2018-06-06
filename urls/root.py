@@ -9,5 +9,5 @@ def test1():
 urlpatterns = [
     url(r'^admin/$', test),
     url(r'^admin/(?P<name>\w+)/$', test1),
-    url(r'^homepage/', include('url2')),
+    url(r'^homepage/', include('child')),
 ]

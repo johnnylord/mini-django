@@ -17,13 +17,15 @@ except:
 
 class BaseHandler:
     _middleware_chain = None
-    _exception_chain = None
+    _exception_middleware = None
     @register(Color.RED)
     def load_middleware(self):
         """
         最終產物是_middleware_chain,是request的進入點
         _middleware_chain是由一層一層的middleware的object所建構出來的object
         """
+        self._exception_middleware = []
+
         #最底層處理request的function,還未經過middleware包裝
         handler = self._get_response 
 
@@ -31,8 +33,11 @@ class BaseHandler:
         for middleware_path in settings.MIDDLEWARE:
             middleware = import_string(middleware_path) # import_string() return a middleware class 
             mw_instance = middleware(handler) # init handler 
+            
+            if hasattr(mw_instance,'process_exception'):
+                self._exception_middleware.append(mw_instance.process_exception)
+            
             handler = mw_instance
-
 
         #當middleware一層一層的包起來之後會將最外層的middleware存在_middleware_chain,
         #在get_response()中呼叫,request開始進入middleware
@@ -55,29 +60,27 @@ class BaseHandler:
         5. if response has render ,and call process_template_response
         6. return response to browser
         """
-        # get request url
+        response = None
+        
         urlRoute = request.path_info
         if urlRoute.startswith(settings.STATIC_URL):
             static = StaticHandler(urlRoute)
             return static.render()
         resolver = UrlResolver(settings.URL_ROOT)
         (args, kwargs, view) = resolver.resolve_url(urlRoute)
-        # response = view(request, *args, **kwargs)
-        if view == None :
-            response = """
-            <html>
-                <head>
-                    <title>Test</title>
-                </head>
-                <body>
-                Hello World
-                </body>
-            </html>
-            """
-            response = '\n'.join(response)
-            response = HttpResponse(response) 
-            response["Content-Type"] = "text/html"
-        else :
-            response = view(request)
+    
+    
+        if response is None:
+            try:
+                response = view(request, *args, **kwargs)
+            except Exception as e:
+                response = self.process_exception_by_middleware(e,request)
+
         #return回上一層的middleware並且執行process_response,再一層一層的
         return response
+
+    def process_exception_by_middleware(self,exception,request):
+        for middleware_method in self._exception_middleware:
+            response = middleware_method(request,exception)
+            if response:
+                return response

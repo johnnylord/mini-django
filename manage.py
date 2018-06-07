@@ -7,7 +7,7 @@ from utils.color import Color
 from utils.template.project import SettingTemplate, AppTemplate
 from core.handlers.wsgi import WSGIHandler
 
-os.environ.setdefault('SETTING_MODULE', 'mysite.settings')
+os.environ.setdefault('SETTING_MODULE', 'project.settings')
 
 def usage():
     """Hint for the usage of manage.py"""

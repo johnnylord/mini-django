@@ -1,7 +1,17 @@
-<p> Hello World </p>
+<!DOCTYPE html>
+<html>
 
-My name is {{ name }}
+<head>
+	<title>Mini-Django</title>
+	<meta charset="UTF-8">
+</head>
 
-{% for i in numbers %}
-	Hello world {{ i }}
-{% endfor %}
+<body>
+	<div id= "test"></div>
+	<p> Hello World </p>
+
+	My name is {{ name }} {% for i in numbers %} Hello world {{ i }} {% endfor %} {% if name %} I have a name {% for i in numbers
+	%} In the 'if' tag {{ i }} {% endfor %} {% endif %} {% if invalid %} I should not appear. {% endif %}
+</body>
+
+</html>

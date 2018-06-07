@@ -1,14 +1,16 @@
+import os
 from importlib import import_module
 from functools import wraps
 from utils.module_loading import import_string
 from utils.loggit import register
 from utils.color import Color
 from mini_http.response import HttpResponse
-import settings
+from urls.resolver import UrlResolver 
+
 
 class BaseHandler:
     _middleware_chain = None 
-
+    
     @register(Color.RED)
     def load_middleware(self):
         """
@@ -18,8 +20,8 @@ class BaseHandler:
         #最底層處理request的function,還未經過middleware包裝
         handler = self._get_response 
 
-        #根據settings.MIDDLEWARE的參數將handler做包裝
-        for middleware_path in settings.MIDDLEWARE:
+        #根據self.settings.MIDDLEWARE的參數將handler做包裝
+        for middleware_path in self.settings.MIDDLEWARE:
             middleware = import_string(middleware_path) # import_string() return a middleware class 
             mw_instance = middleware(handler) # init handler 
             handler = mw_instance
@@ -48,8 +50,10 @@ class BaseHandler:
         """
         # get request url
         urlRoute = request.path_info
-        view = extractViewFromUrlPattern(urlPattern, urlRoute)
+        resolver = UrlResolver(self.settings.URL_ROOT)
+        (args, kwargs, view) = resolver.resolve_url(urlRoute)
 
+        # response = view(request, *args, **kwargs)
         if view == False :
             response = """
             <html>

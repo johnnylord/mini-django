@@ -1,7 +1,11 @@
 from utils.mixin import MiddlewareMixin
-import settings
+from importlib import import_module
 import re
+import os
 
+
+setting_path = os.environ.get('SETTING_MODULE')
+settings = import_module(setting_path)
 host_validation_re = re.compile(r"^([a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9\.:]+\])(:\d+)?$")
 
 

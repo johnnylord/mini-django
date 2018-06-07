@@ -23,6 +23,15 @@ class SettingTemplate:
             ']\n',
             'ALLOWED_HOSTS = [',
             ']\n',
+            'TEMPLATES = [',
+            [
+                '{',
+                [
+                    repr('DIRS')+" : [],",  
+                ],
+                '},',
+            ],
+            ']\n',
             'SECURE_SSL_REDIRECT = True',
             'SECURE_HSTS_SECONDS = False',
             'SECURE_HSTS_INCLUDE_SUBDOMAINS = False',
@@ -31,7 +40,7 @@ class SettingTemplate:
         ],
 
         'urls.py':[
-            'from urls.utils import url\n',
+            'from urls.resolver import url\n',
             'urlpatterns = [',
             [
                 'url("/index/", index)'+",",
@@ -91,6 +100,7 @@ class SettingTemplate:
         for line in source_code:
             if type(line) == list:
                 self._render_list(coder, line)
+                continue
             elif line.startswith("URL_ROOT") and self.project_name != "project":
                 line = 'URL_ROOT = \"{}.urls\"'.format(self.project_name)
             else:

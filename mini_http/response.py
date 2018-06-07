@@ -62,7 +62,7 @@ def force_bytes(s):
     """
     if isinstance(s, memoryview):
         return bytes(s)
-    if isinstance(s, Promise) or not isinstance(s, str):
+    if not isinstance(s, str):
         return str(s).encode(encoding, errors)
     else:
         return s.encode(encoding, errors)

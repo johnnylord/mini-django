@@ -23,6 +23,10 @@ class SettingTemplate:
             ']\n',
             'ALLOWED_HOSTS = [',
             ']\n',
+            'INSTALLED_APPS = [',
+            [
+            ],
+            ']\n',
             'TEMPLATES = [',
             [
                 '{',
@@ -32,11 +36,12 @@ class SettingTemplate:
                 '},',
             ],
             ']\n',
-            'SECURE_SSL_REDIRECT = True',
+            'SECURE_SSL_REDIRECT = False',
             'SECURE_HSTS_SECONDS = False',
             'SECURE_HSTS_INCLUDE_SUBDOMAINS = False',
             'SECURE_HSTS_PRELOAD = False',
-            'SECURE_CONTENT_TYPE_NOSNIFF = False',
+            'SECURE_CONTENT_TYPE_NOSNIFF = False\n',
+            'STATIC_URL = '+repr('/static/'),
         ],
 
         'urls.py':[

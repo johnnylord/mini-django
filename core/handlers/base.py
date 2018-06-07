@@ -6,11 +6,15 @@ from utils.loggit import register
 from utils.color import Color
 from mini_http.response import HttpResponse
 from urls.resolver import UrlResolver 
-
+from template.static import StaticHandler
 
 class BaseHandler:
     _middleware_chain = None 
-    
+
+    def __init__(self):
+        self.setting_path = os.environ.get('SETTING_MODULE')
+        self.settings = import_module(self.setting_path)
+
     @register(Color.RED)
     def load_middleware(self):
         """
@@ -20,7 +24,7 @@ class BaseHandler:
         #最底層處理request的function,還未經過middleware包裝
         handler = self._get_response 
 
-        #根據self.settings.MIDDLEWARE的參數將handler做包裝
+        #根據settings.MIDDLEWARE的參數將handler做包裝
         for middleware_path in self.settings.MIDDLEWARE:
             middleware = import_string(middleware_path) # import_string() return a middleware class 
             mw_instance = middleware(handler) # init handler 
@@ -50,11 +54,13 @@ class BaseHandler:
         """
         # get request url
         urlRoute = request.path_info
+        if urlRoute.startswith("/static"):
+            static = StaticHandler(urlRoute)
+            return static.render()
         resolver = UrlResolver(self.settings.URL_ROOT)
         (args, kwargs, view) = resolver.resolve_url(urlRoute)
-
         # response = view(request, *args, **kwargs)
-        if view == False :
+        if view == None :
             response = """
             <html>
                 <head>

@@ -5,10 +5,12 @@ from importlib import import_module
 
 from utils.color import Color
 from template.codegen import CodeBuilder
-from template.loader import get_static
 
-setting_path = os.environ.get('SETTING_MODULE')
-settings = import_module(setting_path)
+try:
+    setting_path = os.environ.get('SETTING_MODULE')
+    settings = import_module(setting_path)
+except:
+    pass
 
 class Error(Exception):
     pass
@@ -23,7 +25,6 @@ class TempliteSyntaxError(Error):
 
     def __repr__(self):
         return repr(self.message)
-
 
 class HtmlTemplite(object):
     """Html template engine
@@ -141,21 +142,22 @@ class HtmlTemplite(object):
                     ops_stack.append('for')
                     self._track_variable(words[1], self.loop_vars)
                     coder.add_line(
-                        'for c_%s in %s:' % (
-                            words[1],
-                            self._expr_code(words[3], list)
-                        )
-                    )
+                            'for c_%s in %s:' % (
+                                words[1],
+                                self._expr_code(words[3], list)
+                                )
+                            )
                     coder.indent()
-                elif words[0].startswith('load'):
-                    self.static = settings.STATIC_URL
-
-                elif words[0].startswith('static'):
+                elif words[0] == 'static':
+                    # {% static 'url' %}
                     if len(words) != 2:
-                        self._syntax_error("template 'static' tag error.\n")
+                        self._syntax_error("[Template] \'static\' tag error.\n")
                     static_url = words[1][1:-1]
-                    static_url = os.path.join(self.static,static_url)
-                    coder.add_line("append_result(to_str(%s))" % repr(static_url))
+                    static_url = os.path.join(settings.STATIC_URL, static_url)
+                    coder.add_line(
+                            "append_result(to_str(%s))" 
+                            % repr(static_url)
+                            )
                 elif words[0].startswith('end'):
                     # {% endxxx %}
                     if len(words) != 1:
@@ -324,5 +326,5 @@ if __name__ == '__main__':
     t = HtmlTemplite("test.html")
 
     # Render complete html file
-    print(t.source)
-    print(t.render({'name': 'Johnny', 'numbers':range(5)}))
+    # print(t.source)
+    print(t.render({'name': 'Johnny'}))

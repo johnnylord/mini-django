@@ -25,6 +25,7 @@ class SettingTemplate:
             ']\n',
             'INSTALLED_APPS = [',
             [
+                repr('contrib.staticfiles')+',',
             ],
             ']\n',
             'TEMPLATES = [',
@@ -48,7 +49,7 @@ class SettingTemplate:
             'from urls.resolver import url\n',
             'urlpatterns = [',
             [
-                'url("/index/", index)'+",",
+                'url(r"^static/", include("staticfiles.urls"))'+",",
             ],
             ']',
         ],
@@ -135,10 +136,11 @@ class AppTemplate:
     """
     FILES = {
         'urls.py':[
-            'from urls.utils import url\n',
+            'from urls.utils import url',
+            'import views\n',
             'urlpatterns = [',
             [
-                'url("/index/", index)'+",",
+                'url(r"^index/$", views.index)'+",",
             ],
             ']',
         ],

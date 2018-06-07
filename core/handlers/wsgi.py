@@ -36,7 +36,13 @@ class WSGIRequest:
         self.environ = environ
         self.method = environ.get('REQUEST_METHOD').lower()
         self.content_type = environ.get('CONTENT_TYPE', '')
-        self.content_length = int(environ.get('CONTENT_LENGTH', 0))
+
+        content_length = environ.get('CONTENT_LENGTH')
+        if content_length == '':
+            self.content_length = 0
+        else:
+            self.content_length = int(content_length)
+
         self.server_name = environ.get('SERVER_NAME')
         self.server_port = int(environ.get('SERVER_PORT'))
         self.server_protocol = environ.get('SERVER_PROTOCOL')
@@ -48,6 +54,7 @@ class WSGIRequest:
         
         # Extract the query string
         self.query_string = parse_qs(self._get_query_string(environ))
+        print(self)
 
     def _get_bytes_from_wsgi(self, environ, key, default):
         """Extract the value from the environ with original bytes string
@@ -98,14 +105,17 @@ class WSGIRequest:
         return path_info
 
     def __str__(self):
+        query_string = ', '.join(
+                [k+"="+str(v) for k, v in self.query_string.items()]
+                )
         message = (
             Color.WARNING
             + '[Request Info]: '
-            + self.path
+            + self.path_info
             + " "
             + self.method
             + " "
-            + self.query_string
+            + query_string
             + '\n'
             + Color.ENDC
             )

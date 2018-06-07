@@ -5,7 +5,6 @@ from wsgiref.simple_server import make_server
 
 from utils.color import Color
 from utils.template.project import SettingTemplate, AppTemplate
-from core.handlers.wsgi import WSGIHandler
 
 os.environ.setdefault('SETTING_MODULE', 'project.settings')
 
@@ -37,6 +36,7 @@ def runserver(port=8000):
     port --- the port number server binds to(default 8000)
     """
     try:
+        from core.handlers.wsgi import WSGIHandler
         # Display server message
         print(
             Color.GREEN

@@ -4,7 +4,7 @@ from http.client import responses
 class HttpResponseBase:
     status_code = 200
 
-    def __init__(self,content_type=None, status=None):
+    def __init__(self, content_type=None, status=None):
         self._headers = {}
         if status is not None:
             try:
@@ -31,12 +31,12 @@ class HttpResponseBase:
         return responses.get(self.status_code,'Unknown Status Code')
 
     @reason_phrase.setter
-    def reason_phrase(self,value):
+    def reason_phrase(self, value):
         self._reason_phrase = value
 
 
 
-    def make_bytes(self,value):
+    def make_bytes(self, value):
         """
         change value into bytes type ,then it can correspond wsgi response
         """
@@ -47,10 +47,10 @@ class HttpResponseBase:
         
         return force_bytes(value)
 
-    def __setitem__(self,header,value):
+    def __setitem__(self, header, value):
         self._headers[header.lower()] = (header,value)
 
-    def __getitem__(self,header):
+    def __getitem__(self, header):
         return self._headers[header.lower()][1]
     
     def items(self):
@@ -70,8 +70,8 @@ def force_bytes(s):
 
 
 class HttpResponse(HttpResponseBase):
-    def __init__(self,content = b'',*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, content = b'', *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.content = content
 
 
@@ -84,7 +84,7 @@ class HttpResponse(HttpResponseBase):
 
 
     @content.setter
-    def content(self,value):
+    def content(self, value):
         content = self.make_bytes(value)
         self._container = [content]
 

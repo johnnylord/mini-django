@@ -1,13 +1,16 @@
-from template.codegen import CodeBuilder
-from template.loader import get_static
 import sys
 import re
 import os
 from importlib import import_module
 
-setting_path = os.environ.get('SETTING_MODULE')
-settings = import_module(setting_path)
+from template.codegen import CodeBuilder
 
+try:
+    setting_path = os.environ.get('SETTING_MODULE')
+    settings = import_module(setting_path)
+except:
+    pass
+    
 
 class HtmlTemplite(object):
 

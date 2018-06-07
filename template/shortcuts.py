@@ -3,7 +3,7 @@ from template.loader import get_template
 from mini_http.response import HttpResponse
 import os.path
 
-def render(request , template_name , context = None , context_type = None ,status = None):
+def render(request, template_name, context=None, context_type=None, status=None):
     """
     Return a HttpResponse whose content is filled with html file content that is compiled by template engine
     """

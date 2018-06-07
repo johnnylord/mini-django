@@ -1,4 +1,4 @@
-from utils.mixin import MiddlewareMixin
+from middleware.mixin import MiddlewareMixin
 
 class TestModule(MiddlewareMixin):
     def __init__(self, get_response=None):

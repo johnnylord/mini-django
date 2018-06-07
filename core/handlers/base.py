@@ -5,15 +5,14 @@ from functools import wraps
 from utils.module_loading import import_string
 from utils.loggit import register
 from utils.color import Color
-from mini_http.response import HttpResponse
 from urls.resolver import UrlResolver 
-from template.static import StaticHandler
 
 try:
     setting_path = os.environ.get('SETTING_MODULE')
     settings = import_module(setting_path)
 except:
     pass
+
 
 class BaseHandler:
     _middleware_chain = None
@@ -60,27 +59,21 @@ class BaseHandler:
         5. if response has render ,and call process_template_response
         6. return response to browser
         """
-        response = None
-        
         urlRoute = request.path_info
-        if urlRoute.startswith(settings.STATIC_URL):
-            static = StaticHandler(urlRoute)
-            return static.render()
         resolver = UrlResolver(settings.URL_ROOT)
         (args, kwargs, view) = resolver.resolve_url(urlRoute)
-    
-    
-        if response is None:
-            try:
-                response = view(request, *args, **kwargs)
-            except Exception as e:
-                response = self.process_exception_by_middleware(e,request)
+        
+        try:
+            response = view(request, *args, **kwargs)
+        except Exception as e:
+            print(e)
+            response = self.process_exception_by_middleware(e, request)
 
         #return回上一層的middleware並且執行process_response,再一層一層的
         return response
 
-    def process_exception_by_middleware(self,exception,request):
+    def process_exception_by_middleware(self, exception, request):
         for middleware_method in self._exception_middleware:
-            response = middleware_method(request,exception)
+            response = middleware_method(request, exception)
             if response:
                 return response

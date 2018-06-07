@@ -1,4 +1,4 @@
-from utils.mixin import MiddlewareMixin
+from middleware.mixin import MiddlewareMixin
 from importlib import import_module
 import re
 import os
@@ -27,7 +27,8 @@ class SecurityMiddleware(MiddlewareMixin):
     def process_request(self, request):
         if self.redirect and request['HTTP_HOST'] and request['wsgi.url_scheme'] != "https":
             host = self.get_host(request)
-            # return HttpResponsePermanentRedirect to https
+            # return WSGIResponsePermanentRedirect to https
+
 
     def process_response(self, request, response):
         if (self.sts_seconds and 'strict-transport-security' not in response):

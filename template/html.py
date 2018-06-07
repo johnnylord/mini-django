@@ -1,6 +1,13 @@
 from template.codegen import CodeBuilder
+from template.loader import get_static
 import sys
 import re
+import os
+from importlib import import_module
+
+setting_path = os.environ.get('SETTING_MODULE')
+settings = import_module(setting_path)
+
 
 class HtmlTemplite(object):
 
@@ -77,7 +84,6 @@ class HtmlTemplite(object):
                 elif words[0] == 'for':
                     # {% for loop_var in xxx %}
                     if len(words) != 4 or words[2] != 'in':
-                        print(words)
                         self._syntax_error("template 'for' tag error.\n")
                     ops_stack.append('for')
                     self._track_variable(words[1], self.loop_vars)
@@ -88,6 +94,15 @@ class HtmlTemplite(object):
                         )
                     )
                     coder.indent()
+                elif words[0].startswith('load'):
+                    self.static = settings.STATIC_URL
+
+                elif words[0].startswith('static'):
+                    if len(words) != 2:
+                        self._syntax_error("template 'static' tag error.\n")
+                    static_url = words[1][1:-1]
+                    static_url = os.path.join(self.static,static_url)
+                    coder.add_line("append_result(to_str(%s))" % repr(static_url))
                 elif words[0].startswith('end'):
                     # {% endxxx %}
                     if len(words) != 1:

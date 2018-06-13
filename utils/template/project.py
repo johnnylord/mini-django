@@ -17,7 +17,7 @@ class SettingTemplate:
             'URL_ROOT = "project.urls"\n',
             'MIDDLEWARE = [',
             [
-                repr('middleware.TestModule.TestModule')+",",
+                repr('middleware.errorhandle.ErrorHandle')+",",
                 repr('middleware.security.SecurityMiddleware')+",",
             ],
             ']\n',

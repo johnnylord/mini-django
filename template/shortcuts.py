@@ -10,16 +10,17 @@ except:
     pass
 
 def render(request, template_name, context=None, context_type=None, status=None):
-    """Summary
+    """Returns an WSGIResponse object that had been compiled with the template and a context dictionary 
 
     [Keyword argument]:
-    request --
+    request --- the WSGIRequest object that passed from WSGIHandler
+    template_name --- the template user wnat to compile and return
+    context --- the dictionary value user wnat to combine with template
+    context_type --- the type user want the content header is
+    status --- response status
 
     [Return]:
-    A WSGIResponse object
-
-    [Description]
-    Return a WSGIResponse whose content is filled with html file content that is compiled by template engine
+    A WSGIResponse object which content is template compiled with context
     """
     template_name = get_template(template_name)
     if os.path.isfile(template_name) is False:
@@ -31,17 +32,14 @@ def render(request, template_name, context=None, context_type=None, status=None)
         return WSGIResponse(content,context_type,status)
 
 def get_template(template_name):
-    """Summary
-
+    """Get the complete path of the template
+    
     [Keyword argument]
+    template_name --- the template user wnat to compile and return
 
     [Return]
-    A HtmlTemplite object
-
-    [Description]
-
+    the string which is compelte template path
     """
-
     base_dir = settings.BASE_DIR
     templates = settings.TEMPLATES
 

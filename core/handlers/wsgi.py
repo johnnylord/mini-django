@@ -122,10 +122,32 @@ class WSGIRequest:
         return message
 
 
-class WSGIResponseBase:
+class WSGIResponse:
+    """A wrapper class for response to WSGIServer
+
+    [Description]:
+    A wrapper object that contain information of WSGIServer need,
+    ex.status, content, content-type and header
+    """
     status_code = 200
 
-    def __init__(self, content_type=None, status=None):
+    def __init__(self, content = b'', content_type=None, status=None):
+        """Construct a wsgi response object
+
+        [Keyword argument]:
+        content --- content of response body
+        content_type --- type of the cotent of response body
+        status --- the status of response body
+
+        [Attribute]:
+        _headers --- a dictionary to save all response header
+        status_code --- response status
+        _reason_phrase --- response status phrase
+        content --- content of response body
+
+        [Description]:
+        extract information from keyword argument, if keyword argument is none,then give default value 
+        """
         self._headers = {}
         if status is not None:
             try:
@@ -141,94 +163,124 @@ class WSGIResponseBase:
             content_type = "text/plain"
 
         self['Content-Type'] = content_type
-    
+        self.content = content
+
+    @property
+    def content(self):
+        """Let content method be a property, and return content of _container"""
+        return b''.join(self._container)
+
+    @content.setter
+    def content(self, value):
+        """Save value into _container
+        
+        [Keyword argument]:
+        value --- content that user want to save into content of response body 
+
+        """
+        content = self.make_bytes(value)
+        self._container = [content]
+
     @property
     def reason_phrase(self):
-        """
-        via status code value to get status constant 
+        """Return status constant
+
+        [Description]:
+        return _reason_phrase which is save status constant, 
+        if _reason_phrase ,via status code value to get status constant and return 
         """
         if self._reason_phrase is not None:
             return self._reason_phrase
         return responses.get(self.status_code,'Unknown Status Code')
 
+
     @reason_phrase.setter
     def reason_phrase(self, value):
+        """Save status constant into _reason_phrase
+
+        [Keyword argument]:
+        value --- save status constant into _reason_phrase 
+        """
         self._reason_phrase = value
 
 
-
     def make_bytes(self, value):
-        """
-        change value into bytes type ,then it can correspond wsgi response
+        """Casting value into bytes type ,then it can correspond with WSGIServer
+
+        [Keyword argument]:
+        value --- the value you want to cast to bytes type
+
+        [Description]:
+        Because WSGIServer only receive content which is bytes type, you need to cast the value to bytes type
         """
         if isinstance(value,bytes):
             return bytes(value)
         if isinstance(value,str):
             return bytes(value.encode('utf-8'))
         
-        return force_bytes(value)
-
-    def __setitem__(self, header, value):
-        self._headers[header.lower()] = (header,value)
-
-    def __getitem__(self, header):
-        return self._headers[header.lower()][1]
-    
-    def items(self):
-        return self._headers.values()
-
-def force_bytes(s):
-    """
-    force any type of content change to bytes type
-    """
-    if isinstance(s, memoryview):
-        return bytes(s)
-    if not isinstance(s, str):
-        return str(s).encode(encoding, errors)
-    else:
-        return s.encode(encoding, errors)
-
-
-
-class WSGIResponse(WSGIResponseBase):
-    def __init__(self, content = b'', *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.content = content
-
-    @property
-    def content(self):
-        """
-        response content
-        """
-        return b''.join(self._container)
-
-    @content.setter
-    def content(self, value):
-        content = self.make_bytes(value)
-        self._container = [content]
+        return bytes(value)
 
     def __iter__(self):
-        """
-        when return a response to wsgi server,we need to pass a iteritor,
-        so it will return a iterator of self._container
-        """
+        """Return a iteritor of _container to WSGIServer"""
         return iter(self._container)
 
     def __len__(self):
+        """Return the length of content"""
         return len(self.content)
+
+    def __setitem__(self, header, value):
+        """Save key value in _headers
+        
+        [Keyword argument]:
+        header --- the key you want to save in dictionary
+        value --- the value you want to save in dictionary
+        """
+        self._headers[header.lower()] = (header,value)
+
+    def __getitem__(self, header):
+        """Return key value in _headers
+        
+        [Keyword argument]:
+        header --- the key you want search in _header dictionary
+        """
+        return self._headers[header.lower()][1]
+    
+    def items(self):
+        """Return a list of dict of _headers"""
+        return self._headers.values()
 
 
 class WSGIHandler(base.BaseHandler):
-    """
-    THe callable object that is the interface between
+    """Interface between the WSGI application and the WSGI server
+    
+    [Description]: 
+    The callable object which is the interface between
     the WSGI application and the WSGI server.
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        """Construct a WSGIHandler object
+
+        [Description]:
+        Construct a WSGIHandler object ,and load middleware from settings.MIDDLEWARE
+        """
         self.load_middleware()
 
     @register()
     def __call__(self, environ, start_response):
+        """Receive the request from WSGIServer, and return WSGIResponse to WSGIServer
+
+        [Keyword argument]:
+        environ --- a dictionary keeping all the information of the header of
+                    the request
+        start_response --- the function that return response status and response header to WSGIServer
+
+        [Description]:
+        Process the request from WSGIServer. The entry point to middleware, template engine and url router so on
+        and return response to WSGIServer
+
+        [Return]:
+        WSGIResponse object
+        """
         request = WSGIRequest(environ)
         response = self.get_response(request)
     

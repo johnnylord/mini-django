@@ -15,49 +15,75 @@ except:
 
 
 class BaseHandler:
+    """Provide genernal function to WSGIhandler
+
+    [Public method]
+    load_middleware --- load all middleware in a chain
+    get_response --- a interface to WSGIHandler
+    process_exception_by_middleware --- call process_excception in middleware and get response 
+
+    [Private method]
+    _get_response --- process request and return a response 
+    
+    """
     _middleware_chain = None
     _exception_middleware = None
     @register(Color.RED)
     def load_middleware(self):
-        """
-        最終產物是_middleware_chain,是request的進入點
-        _middleware_chain是由一層一層的middleware的object所建構出來的object
+        """Load middleware object and save entry point in _middleware_chain
+
+        [Attributes]:
+        _exception_middleware --- the list that save all process_exception function in middleware
+        _middleware_chain --- the entry point to middleware chain which is a class object
+
+        [Description]:
+        Get the list of middleware in settings.py,and make a middleware object to next middleware argument.
+        Save outermost layer of middleware in _middleware_chain.
+        When user call _middleware_chain ,the requset will pass through to all of middleware and reach _get_response method 
         """
         self._exception_middleware = []
 
-        #最底層處理request的function,還未經過middleware包裝
+        #the base layer of middleware to process request
         handler = self._get_response 
 
-        #根據settings.MIDDLEWARE的參數將handler做包裝
         for middleware_path in settings.MIDDLEWARE:
-            middleware = import_string(middleware_path) # import_string() return a middleware class 
-            mw_instance = middleware(handler) # init handler 
+            # import_string() return a middleware class
+            middleware = import_string(middleware_path)  
+            mw_instance = middleware(handler)
             
             if hasattr(mw_instance,'process_exception'):
                 self._exception_middleware.append(mw_instance.process_exception)
             
             handler = mw_instance
-
-        #當middleware一層一層的包起來之後會將最外層的middleware存在_middleware_chain,
-        #在get_response()中呼叫,request開始進入middleware
         self._middleware_chain = handler 
         
+
     def get_response(self,request):
-        """
-        a interface for WSGIHandler,
-        真正處理request的是middleware中的process_request(),process_response() ,and _get_response()
+        """A interface for WSGIHandler.
+
+        [Keyword argument]:
+        request --- the WSGIRequest object that passed from WSGIHandler
+
+        [Description]:
+        WSGIHandler call this method to let request go though middleware and _get_response method to process request
         """
         response = self._middleware_chain(request) #middleware的進入點
         return response
 
     def _get_response(self, request):
-        """
-        1. url router doing here and return view function and the information in the url
-        2. process_view in middleware are called to enforce view function
-        3. call view function and get view function response
-        4. if response if None print error ,may return an error page to browser
-        5. if response has render ,and call process_template_response
-        6. return response to browser
+        """Process request to url router ,template engine and return response
+
+        [Keyword argument]:
+        request --- the WSGIRequest object that passed from WSGIHandler
+
+        [Return]:
+        WSGIResponse object
+
+        [Description]:
+        Call url router to get the view function user defined, and get the response that 
+        views function returned. If view function return None or error exception, then call 
+        process_exception_by_middleware method to handle the exception to return error message response.
+
         """
         urlRoute = request.path_info
         resolver = UrlResolver(settings.URL_ROOT)
@@ -69,10 +95,19 @@ class BaseHandler:
             print(e)
             response = self.process_exception_by_middleware(e, request)
 
-        #return回上一層的middleware並且執行process_response,再一層一層的
         return response
 
     def process_exception_by_middleware(self, exception, request):
+        """Call process_exception in middleware and get error message response
+
+        [Keyword argument]:
+        exception --- the exception view function raise 
+        request --- WSGIRequest object that passed from WSGIHandler
+
+        [Return]:
+        a WSGIResponse object that filled of exception message
+
+        """
         for middleware_method in self._exception_middleware:
             response = middleware_method(request, exception)
             if response:

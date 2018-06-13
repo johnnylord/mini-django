@@ -9,6 +9,15 @@ except:
     pass
 
 def serve_static(request, staticfile):
+    """process static request and return a response with static file content
+
+    [Keyword arguments]:
+    request --- request from browser
+    staticfile --- the path to static file
+
+    [Return]:
+    WSGIResponse object
+    """
     static_path = _get_static(staticfile)
     static_content = None
     content_type = _get_content_type(static_path)
@@ -23,6 +32,15 @@ def serve_static(request, staticfile):
         
 
 def _get_static(staticfile):
+    """via static file and BASE_DIR and STATIC_URL in settings to get compelete path to static file
+    
+    [Keyword arguments]:
+    staticfile --- the path to static file
+
+    [Return]:
+    None or a complete path to static file
+    """
+
     base_dir = settings.BASE_DIR
     static_url = "static/"
     installed_apps = settings.INSTALLED_APPS
@@ -34,6 +52,15 @@ def _get_static(staticfile):
     return None
 
 def _get_content_type(static_path):
+    """via file type to determine the content type of response
+
+    [Keyword arguments]:
+    static_path --- compelete path to static file
+
+    [Return]:
+    a string which indicate the content type of response
+    """
+
     content_type=None
     static_path = static_path.split('.')
     

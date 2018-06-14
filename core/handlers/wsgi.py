@@ -262,7 +262,7 @@ class WSGIHandler(base.BaseHandler):
         [Description]:
         Construct a WSGIHandler object ,and load middleware from settings.MIDDLEWARE
         """
-        super().init(*args, **kwargs);
+        super().__init__(*args, **kwargs);
         self.load_middleware()
 
     @register()

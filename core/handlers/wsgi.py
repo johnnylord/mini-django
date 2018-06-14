@@ -1,9 +1,9 @@
 from cgi import parse_qs
+from http.client import responses
 
 from utils.color import Color
 from utils.loggit import register
 from core.handlers import base
-from mini_http.response import HttpResponse
 
 class WSGIRequest:
     """A wrapper class for the incoming request
@@ -121,24 +121,166 @@ class WSGIRequest:
             )
         return message
 
+class WSGIResponse:
+    """A wrapper class for response to WSGIServer
+
+    [Description]:
+    A wrapper object that contain information of WSGIServer need,
+    ex.status, content, content-type and header
+    """
+    status_code = 200
+
+    def __init__(self, content = b'', content_type=None, status=None):
+        """Construct a wsgi response object
+
+        [Keyword argument]:
+        content --- content of response body
+        content_type --- type of the cotent of response body
+        status --- the status of response body
+
+        [Attribute]:
+        _headers --- a dictionary to save all response header
+        status_code --- response status
+        _reason_phrase --- response status phrase
+        content --- content of response body
+
+        [Description]:
+        extract information from keyword argument, if keyword argument is none,then give default value 
+        """
+        self._headers = {}
+        if status is not None:
+            try:
+                self.status_code = int(status)
+            except (ValueError, TypeError):
+                raise TypeError('HTTP status code must be an integer.')
+
+            if not 100 <= self.status_code <= 599:
+                raise ValueError('HTTP status code must be an integer from 100 to 599.')
+        self._reason_phrase = None
+
+        if content_type is None:
+            content_type = "text/plain"
+
+        self['Content-Type'] = content_type
+        self.content = content
+
+    @property
+    def content(self):
+        """Let content method be a property, and return content of _container"""
+        return b''.join(self._container)
+
+    @content.setter
+    def content(self, value):
+        """Save value into _container
+        
+        [Keyword argument]:
+        value --- content that user want to save into content of response body 
+
+        """
+        content = self.make_bytes(value)
+        self._container = [content]
+
+    @property
+    def reason_phrase(self):
+        """Return status constant
+
+        [Description]:
+        return _reason_phrase which is save status constant, 
+        if _reason_phrase ,via status code value to get status constant and return 
+        """
+        if self._reason_phrase is not None:
+            return self._reason_phrase
+        return responses.get(self.status_code,'Unknown Status Code')
+
+
+    @reason_phrase.setter
+    def reason_phrase(self, value):
+        """Save status constant into _reason_phrase
+
+        [Keyword argument]:
+        value --- save status constant into _reason_phrase 
+        """
+        self._reason_phrase = value
+
+
+    def make_bytes(self, value):
+        """Casting value into bytes type ,then it can correspond with WSGIServer
+
+        [Keyword argument]:
+        value --- the value you want to cast to bytes type
+
+        [Description]:
+        Because WSGIServer only receive content which is bytes type, you need to cast the value to bytes type
+        """
+        if isinstance(value,bytes):
+            return bytes(value)
+        if isinstance(value,str):
+            return bytes(value.encode('utf-8'))
+        
+        return bytes(value)
+
+    def __iter__(self):
+        """Return a iteritor of _container to WSGIServer"""
+        return iter(self._container)
+
+    def __len__(self):
+        """Return the length of content"""
+        return len(self.content)
+
+    def __setitem__(self, header, value):
+        """Save key value in _headers
+        
+        [Keyword argument]:
+        header --- the key you want to save in dictionary
+        value --- the value you want to save in dictionary
+        """
+        self._headers[header.lower()] = (header,value)
+
+    def __getitem__(self, header):
+        """Return key value in _headers
+        
+        [Keyword argument]:
+        header --- the key you want search in _header dictionary
+        """
+        return self._headers[header.lower()][1]
+    
+    def items(self):
+        """Return a list of dict of _headers"""
+        return self._headers.values()
+
 
 class WSGIHandler(base.BaseHandler):
-    """WSGI application that WSGI server will call
+    """Interface between the WSGI application and the WSGI server
     
-    [Description]:
-        WSGI server will communicate with this kind of
-    object. WSGI handler process the request and return
-    a response to the WSGI server.
+    [Description]: 
+    The callable object which is the interface between
+    the WSGI application and the WSGI server.
     """
     def __init__(self, *args, **kwargs):
-        """Load the middlewares defined in the project setting"""
-        super().__init__(*args, **kwargs)
+        """Construct a WSGIHandler object
+
+        [Description]:
+        Construct a WSGIHandler object ,and load middleware from settings.MIDDLEWARE
+        """
+        super().init(*args, **kwargs);
         self.load_middleware()
 
     @register()
     def __call__(self, environ, start_response):
-        """Process the request and return a response"""
-        # Wrap the incoming request to WSGIRequest object
+        """Receive the request from WSGIServer, and return WSGIResponse to WSGIServer
+
+        [Keyword argument]:
+        environ --- a dictionary keeping all the information of the header of
+                    the request
+        start_response --- the function that return response status and response header to WSGIServer
+
+        [Description]:
+        Process the request from WSGIServer. The entry point to middleware, template engine and url router so on
+        and return response to WSGIServer
+
+        [Return]:
+        WSGIResponse object
+        """
         request = WSGIRequest(environ)
 
         # Process the request and get a response

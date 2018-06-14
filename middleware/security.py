@@ -1,4 +1,4 @@
-from utils.mixin import MiddlewareMixin
+from middleware.mixin import MiddlewareMixin
 from importlib import import_module
 import re
 import os
@@ -10,12 +10,31 @@ host_validation_re = re.compile(r"^([a-z0-9.-]+|\[[a-f0-9]*:[a-f0-9\.:]+\])(:\d+
 
 
 class SecurityMiddleware(MiddlewareMixin):
-    """
-    check request if http or https, if user set the flag,
-    it will redirect the page to the https domain,or it will add header to let browser
-    forbid the http communication or forbid browser to decide which type the response content is. 
+    """Middleware to handle the security of request and response
+
+    [Public method]:
+    process_request --- Check the request that is HTTPS or HTTP
+    process_response --- Set the header of response
+    get_host --- Get HTTP_HOST from request
+
+    [Description]:
+    User can set flag in settings.py to use different kind of security method
+    
+    SECURE_SSL_REDIRECT --- if set TRUE, process_request will redirect all non-HTTPS 
+    request to HTTPS 
+    SECURE_HSTS_SECONDS --- if set non zero number, then will add "HTTP Strict Transport Security" header in response
+    SECURE_HSTS_INCLUDE_SUBDOMAINS --- if set TRUE, then add "includeSubDomains" into response header,
+    only effective when  SECURE_HSTS_SECONDS is non zero number
+    SECURE_HSTS_PRELOAD --- if set TRUE, then add "preload" into response header,only effective 
+    when  SECURE_HSTS_SECONDS is non zero number
+    SECURE_CONTENT_TYPE_NOSNIFF --- if set non zero number,then add "X-Content-Type-Options: nosniff" into response  
     """
     def __init__(self, get_response=None):
+        """Construct the Security middleware, and get the value from settings
+
+        [Keyword argument]
+        get_response --- later middleware or the view function
+        """
         super().__init__(get_response)
         self.sts_seconds = settings.SECURE_HSTS_SECONDS
         self.sts_include_subdomains = settings.SECURE_HSTS_INCLUDE_SUBDOMAINS
@@ -25,11 +44,26 @@ class SecurityMiddleware(MiddlewareMixin):
 
 
     def process_request(self, request):
+        """Check the request is HTTPS or HTTP domain,and decide whether redirect to HTTPS domain
+
+        [Keyword argument]:
+        request --- the WSGIRequest object that passed from WSGIHandler
+        """
         if self.redirect and request['HTTP_HOST'] and request['wsgi.url_scheme'] != "https":
             host = self.get_host(request)
-            # return HttpResponsePermanentRedirect to https
+            # return WSGIResponsePermanentRedirect to https
+
 
     def process_response(self, request, response):
+        """Add security header to response  
+        
+        [Keyword argument]:
+        request --- the WSGIRequest object that passed from WSGIHandler
+        reaponse --- the WSGIResponse object that BaseHandler pass
+
+        [Return]:
+        WSGIResponse object
+        """
         if (self.sts_seconds and 'strict-transport-security' not in response):
             sts_header = "max-age=%s" % self.sts_seconds      
             if self.sts_include_subdomains:
@@ -45,13 +79,18 @@ class SecurityMiddleware(MiddlewareMixin):
         
 
     def get_host(self,request):
-        """
-        get http host and check if it is correspond to ALLOWED_HOSTS in setting.py
+        """Get HTTP_HOST from request and check if it is correspond to ALLOWED_HOSTS in settings.py
+
+        [Keyword argument]:
+        request --- the WSGIRequest object that passed from WSGIHandler
+        
+        [Return]:
+        if host is correspond ALLOWED_HOSTS,return host
         """
         if 'HTTP_HOST' in request:
             host = request['HTTP_HOST']
         
-        #取得setting.py中的ALLOWED_HOST list,如果使用者沒有定義,就將localhost的網址放到預設到allowed_host
+        #get ALLOWED_HOST list in settings.py, if user undefined then add default host in allowed_host
         allowed_hosts = settings.ALLOWED_HOSTS
         if not allowed_hosts:
             allowed_hosts = ['localhost', '127.0.0.1', '[::1]']
@@ -63,12 +102,16 @@ class SecurityMiddleware(MiddlewareMixin):
 
 
 def split_domain_port(host):
-    """
-    split url into port and domain and return
+    """Split url into port and domain and return
+
+    [Keyword argument]:
+    host --- the HTTP_HOST value in request
+
+    [Return]:
+    domain and port which are split from host
     """
     host = host.lower()
 
-    #網址要符合regex格式避免有一些奇怪的亂碼
     if not host_validation_re.match(host):
         return '', ''
 
@@ -76,16 +119,19 @@ def split_domain_port(host):
         # It's an IPv6 address without a port.
         return host, ''
 
-    #將網址切成domain and port,並且分別return
     bits = host.rsplit(':', 1)
-    domain, port = bits if len(bits) == 2 else (bits[0], '')#檢查有沒有port
+    #check if there is port
+    domain, port = bits if len(bits) == 2 else (bits[0], '')
     domain = domain[:-1] if domain.endswith('.') else domain
     return domain, port
 
 
 def validate_host(host, allowed_hosts):
-    """
-    domain need to correspond ALLOWED_HOST,if it is ,will return True,else False
+    """The domain in host need to correspond ALLOWED_HOST,if it is, it will return True, else False
+
+    [Keyword argument]:
+    host --- domain split from HTTP_HOST in request
+    allowed_hosts --- the list that user set in settings
     """
     for pattern in allowed_hosts:
         if pattern == '*' or pattern == host:

@@ -67,11 +67,11 @@ class Manager(BaseManager):
 
     def __init__(self, username="sqlite", password="sqlite"):
         super().__init__(username, password)                 
-    	# Check if the database is empty
-	    self.cursor.execute("SELECT name from sqlite_master WHERE type='table'")
-	    if len(self.cursor.fetchall()) == 0:
-		
-		# Create User table
+        # Check if the database is empty
+        self.cursor.execute("SELECT name from sqlite_master WHERE type='table'")
+        if len(self.cursor.fetchall()) == 0:
+        
+        # Create User table
             self.cursor.execute(
                     "CREATE TABLE users (username TEXT PRIMARY KEY, password TEXT NOT NULL, email TEXT NOT NULL);"
                 )

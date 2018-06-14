@@ -112,9 +112,9 @@ class WSGIRequest:
             Color.WARNING
             + '[Request Info]: '
             + self.path_info
-            + " "
+            + " | "
             + self.method
-            + " "
+            + ": "
             + query_string
             + '\n'
             + Color.ENDC
@@ -123,23 +123,35 @@ class WSGIRequest:
 
 
 class WSGIHandler(base.BaseHandler):
-    """
-    THe callable object that is the interface between
-    the WSGI application and the WSGI server.
+    """WSGI application that WSGI server will call
+    
+    [Description]:
+        WSGI server will communicate with this kind of
+    object. WSGI handler process the request and return
+    a response to the WSGI server.
     """
     def __init__(self, *args, **kwargs):
+        """Load the middlewares defined in the project setting"""
         super().__init__(*args, **kwargs)
         self.load_middleware()
 
     @register()
     def __call__(self, environ, start_response):
+        """Process the request and return a response"""
+        # Wrap the incoming request to WSGIRequest object
         request = WSGIRequest(environ)
+
+        # Process the request and get a response
         response = self.get_response(request)
     
+        # Response message
         status = '%d %s' % (response.status_code, response.reason_phrase)
         response['Content-Length'] = str(len(response))
         response_headers = list(response.items())
         
+        # Return the metadata of the response via the function
+        # provided from WSGI server
         start_response(status, response_headers)
         
+        # Return response body
         return response

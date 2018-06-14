@@ -136,7 +136,7 @@ class AppTemplate:
     """
     FILES = {
         'urls.py':[
-            'from urls.utils import url',
+            'from urls.resolver import url',
             'import views\n',
             'urlpatterns = [',
             [

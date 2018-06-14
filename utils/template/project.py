@@ -46,9 +46,9 @@ class SettingTemplate:
         ],
 
         'urls.py':[
-            'from urls.resolver import url',
-            'from contrib.staticfiles import static',
-            'import settings\n',
+            'from urls.resolver import url, include',
+            'from contrib.staticfiles.static import static',
+            'from . import settings\n',
             'urlpatterns = [',
             [
                 'static(settings.STATIC_URL, include("contrib.staticfiles.urls"))'+",",

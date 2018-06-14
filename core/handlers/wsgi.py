@@ -1,6 +1,9 @@
 from cgi import parse_qs
 from http.client import responses
+from urllib.parse import urlparse
 
+
+from core.exceptions import DisallowedRedirect
 from utils.color import Color
 from utils.loggit import register
 from core.handlers import base
@@ -249,6 +252,33 @@ class WSGIResponse:
         return self._headers.values()
 
 
+
+class WSGIResponseRedirect(WSGIResponse):
+    """A wrapper class for response of redirecting url to WSGIServer
+
+    [Description]:
+    Check the redirect url scheme is correspond to allowed_scheme list 
+    """
+    status_code = 301
+    allowed_schemes = ['http', 'https']
+
+    def __init__(self, redirect_to, *args, **kwargs):
+        """Construct a WSGIResponseRedirect object that is inherited with WSGIResponse
+
+        [Keyword argument]:
+        redirect_to --- redirect url the user want
+
+        [Description]:
+        Create 'Location' key into response header with redirect_to value, and set the status_code to 301,
+        so the response will redirect to correct url.
+        """
+        super().__init__(*args, **kwargs)
+        self['Location'] = redirect_to
+        parsed = urlparse(str(redirect_to))
+        if not parsed.scheme or parsed.scheme not in self.allowed_schemes:
+            raise DisallowedRedirect("Unsafe redirect to URL with protocol '%s'" % str(redirect_to))
+
+
 class WSGIHandler(base.BaseHandler):
     """Interface between the WSGI application and the WSGI server
     
@@ -262,7 +292,7 @@ class WSGIHandler(base.BaseHandler):
         [Description]:
         Construct a WSGIHandler object ,and load middleware from settings.MIDDLEWARE
         """
-        super().__init__(*args, **kwargs);
+        super().__init__(*args, **kwargs)
         self.load_middleware()
 
     @register()

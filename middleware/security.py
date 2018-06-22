@@ -3,6 +3,8 @@ from importlib import import_module
 import re
 import os
 
+from core.handlers.wsgi import WSGIResponseRedirect
+
 
 setting_path = os.environ.get('SETTING_MODULE')
 settings = import_module(setting_path)
@@ -49,9 +51,10 @@ class SecurityMiddleware(MiddlewareMixin):
         [Keyword argument]:
         request --- the WSGIRequest object that passed from WSGIHandler
         """
-        if self.redirect and request['HTTP_HOST'] and request['wsgi.url_scheme'] != "https":
-            host = self.get_host(request)
-            # return WSGIResponsePermanentRedirect to https
+        # if self.redirect and request['HTTP_HOST'] and request['wsgi.url_scheme'] != "https":
+        if self.redirect and request.environ['HTTP_HOST'] and request.environ['wsgi.url_scheme'] != "https":
+            host = self.get_host(request.environ)
+            return WSGIResponseRedirect("https://%s" % host)
 
 
     def process_response(self, request, response):

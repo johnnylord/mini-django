@@ -43,6 +43,14 @@ def get_template(template_name):
     base_dir = settings.BASE_DIR
     templates = settings.TEMPLATES
 
+    template_url = "template/"
+    installed_apps = settings.INSTALLED_APPS
+
+    for app in installed_apps:
+        template_path = os.path.join(base_dir, app,template_url, template_name)
+        if os.path.isfile(template_path):
+            return template_path
+
     for tpl in templates:
         for template_dir in tpl['DIRS']:
 

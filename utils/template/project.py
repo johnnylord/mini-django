@@ -139,7 +139,7 @@ class AppTemplate:
     FILES = {
         'urls.py':[
             'from urls.resolver import url',
-            'import views\n',
+            'from . import views\n',
             'urlpatterns = [',
             [
                 'url(r"^index/$", views.index)'+",",
@@ -147,6 +147,8 @@ class AppTemplate:
             ']',
         ],
         'views.py':[
+            'from template.shortcuts import render',
+            'from core.handlers.wsgi import WSGIResponse\n',
             'def index(request):',
             [
                 'pass',

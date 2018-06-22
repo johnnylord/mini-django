@@ -1,5 +1,6 @@
 import sys
 import re
+
 from importlib import import_module
 
 class UrlResolver(object):
@@ -78,7 +79,19 @@ class UrlResolver(object):
                 # return (args, kwargs, view) from another urlresolver
                 return view_args, view_kwargs, view
             elif view and not sub_path:
-                # If sub_path is empty, then the view function is found
+                # If sub_path is empty
+                # View might be function
+                # View might be another url_resolver
+                if isinstance(view, UrlResolver):
+                    another_resolver = view
+                    (args, kwargs, view) = another_resolver.resolve_url(sub_path)
+                
+                    # update the args and kwargs from another urlresolver
+                    if args:
+                        view_args = view_args + args
+                    if kwargs:
+                        view_kwargs.update(kwargs)
+
                 return view_args, view_kwargs, view
             else:
                 # Keep finding matching regex pattern
@@ -164,21 +177,3 @@ def include(url_config_path):
     """
     return UrlResolver(url_config_path)
 
-
-if __name__ == '__main__':
-
-    resolver = UrlResolver('root')
-
-    case0 = 'null/'
-    case1 = 'admin/'
-    case2 = 'admin/johnnylord/'
-    case3 = 'homepage/name/johnnylord/'
-
-    print("Case0: %r" % case0)
-    print(resolver.resolve_url(case0))
-    print("Case1: %r" % case1)
-    print(resolver.resolve_url(case1))
-    print("Case2: %r" % case2)
-    print(resolver.resolve_url(case2))
-    print("Case3: %r" % case3)
-    print(resolver.resolve_url(case3))

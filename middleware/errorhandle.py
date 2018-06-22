@@ -1,6 +1,18 @@
+import sys
+import os
+from importlib import import_module
+from pathlib import Path
+
 from middleware.mixin import MiddlewareMixin
 from core.handlers.wsgi import WSGIResponse
 from template.shortcuts import render
+from template.html import HtmlTemplite
+from core.exceptions import Http404
+
+setting_path = os.environ.get('SETTING_MODULE')
+settings = import_module(setting_path)
+
+CURRENT_DIR = Path(__file__).parent
 
 class ErrorHandle(MiddlewareMixin):
     """Middleware to handle the exception that BaseHandler class raise
@@ -27,8 +39,13 @@ class ErrorHandle(MiddlewareMixin):
         [Return]:
         WSGIResponse object which content is exception type
         """
-        error_message = ("Erro:%s , %s" %  (type(exception).__name__,exception))
-        return WSGIResponse(error_message)
+
+        if isinstance(exception, Http404):
+            response = technical_404_response(request, exception)
+        else:
+            response = self.handle_uncaught_exception(request, sys.exc_info())
+
+        return response
 
     def process_response(self, request, response):
         """Process response check whether there is error occur
@@ -40,8 +57,32 @@ class ErrorHandle(MiddlewareMixin):
         [Return]:
         WSGIResponse object which content is BaseHandler return or error information
         """
+
+        
         if response is None:
             error_message = "response is None"
             return WSGIResponse(error_message)
         return response
             
+    def handle_uncaught_exception(self, request, exc_info):
+        return technical_500_response(request, *exc_info)
+
+
+def technical_404_response(request, exception):
+    error_url = request.path_info[1:]
+    context = {'request_path':error_url,'reasons':str(exception)}
+    
+    with Path(CURRENT_DIR, 'templates', 'technical_404.html').open() as fh:
+        content = HtmlTemplite(fh.name).render(context)
+
+    return WSGIResponse(content, 'text/html', 404)
+
+
+def technical_500_response(request, exc_type, exc_value, status_code=500):
+    context = {'exc_type':str(exc_type)[1:-1],'exc_value':exc_value}
+    
+    with Path(CURRENT_DIR, 'templates', 'technical_500.html').open() as fh:
+        content = HtmlTemplite(fh.name).render(context)
+
+    return WSGIResponse(content, 'text/html', 500)
+

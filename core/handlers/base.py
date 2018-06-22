@@ -1,4 +1,5 @@
 import os
+import types
 from importlib import import_module
 from functools import wraps
 
@@ -6,6 +7,7 @@ from utils.module_loading import import_string
 from utils.loggit import register
 from utils.color import Color
 from urls.resolver import UrlResolver 
+from core.exceptions import Http404
 
 try:
     setting_path = os.environ.get('SETTING_MODULE')
@@ -44,7 +46,7 @@ class BaseHandler:
         self._exception_middleware = []
 
         #the base layer of middleware to process request
-        handler = self._get_response 
+        handler = self.convert_exception_to_response(self._get_response) 
 
         for middleware_path in settings.MIDDLEWARE:
             # import_string() return a middleware class
@@ -54,7 +56,8 @@ class BaseHandler:
             if hasattr(mw_instance,'process_exception'):
                 self._exception_middleware.append(mw_instance.process_exception)
             
-            handler = mw_instance
+            handler = self.convert_exception_to_response(mw_instance)
+
         self._middleware_chain = handler 
         
 
@@ -88,12 +91,34 @@ class BaseHandler:
         urlRoute = request.path_info
         resolver = UrlResolver(settings.URL_ROOT)
         (args, kwargs, view) = resolver.resolve_url(urlRoute)
-        
+    
+        if view is None:
+            #not found
+            raise Http404(
+                "The url %s in request didn't match any urlpattern in project." % urlRoute 
+            )
+
         try:
             response = view(request, *args, **kwargs)
         except Exception as e:
-            print(e)
-            response = self.process_exception_by_middleware(e, request)
+            if isinstance(view, types.FunctionType):
+                view_name = view.__name__
+            else:
+                view_name = view.__class__.__name__
+            raise ValueError(
+                "In view %s there are some error with --- %s" %(view_name,e)
+            )
+
+        if response is None:
+            if isinstance(view, types.FunctionType):
+                view_name = view.__name__
+            else:
+                view_name = view.__class__.__name__
+
+            raise ValueError(
+                "The view %s didn't return an HttpResponse object. It "
+                "returned None instead." % view_name
+            )
 
         return response
 
@@ -112,3 +137,14 @@ class BaseHandler:
             response = middleware_method(request, exception)
             if response:
                 return response
+
+
+    def convert_exception_to_response(self, get_response):
+        @wraps(get_response)
+        def inner(request):
+            try:
+                response = get_response(request)
+            except Exception as exc:
+                response = self.process_exception_by_middleware(exc, request)
+            return response
+        return inner

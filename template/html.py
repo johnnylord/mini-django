@@ -301,7 +301,7 @@ class HtmlTemplite(object):
         [Keyword arguments]:
         messge --- the message of the template syntax error
         """
-        raise TempliteSyntaxError(Color.ERROR + message + Color.ENDC)
+        raise TempliteSyntaxError(message)
         
     def render(self, context=None): 
         """Render the html file and return the html file content

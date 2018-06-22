@@ -1,7 +1,7 @@
 import sqlite3
 import re   
 
-class dbmanager:
+class DBManager:
 
     def __init__(self, name):
         """

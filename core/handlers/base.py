@@ -140,6 +140,15 @@ class BaseHandler:
 
 
     def convert_exception_to_response(self, get_response):
+        """A wrapper function that handle all exception that get_response rasied 
+        
+        [Keyword argument]:
+        get_response --- the function wraped by convert_exception_to_response
+
+        [Description]:
+        when the get_response raise the exception, then call process_exception_by_middleware to
+        handle the exception and return a WSGIResponse with error exception 
+        """
         @wraps(get_response)
         def inner(request):
             try:

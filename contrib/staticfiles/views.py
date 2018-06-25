@@ -40,11 +40,11 @@ def _get_static(staticfile):
     [Return]:
     None or a complete path to static file
     """
-
+    
     base_dir = settings.BASE_DIR
     static_url = "static/"
     installed_apps = settings.INSTALLED_APPS
-
+    
     for app in installed_apps:
         static_path = os.path.join(base_dir,app,static_url,staticfile)
         if os.path.isfile(static_path):

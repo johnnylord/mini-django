@@ -10,5 +10,5 @@ def static(static_url, view):
     [Return]:
     RegexPattern object
     """
-    static_rex = r"^%s" %static_url
+    static_rex = r"^%s" %static_url[1:]
     return RegexPattern(static_rex, view)

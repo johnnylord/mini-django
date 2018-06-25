@@ -34,16 +34,16 @@ class ErrorHandle(MiddlewareMixin):
 
         [Keyword argument]:
         request --- the WSGIRequest object that passed from WSGIHandler
-        exception --- the exception BaseHandler raise
+        exception --- the exception that BaseHandler raises
 
         [Return]:
-        WSGIResponse object which content is exception type
+        WSGIResponse object which content is exception message
         """
 
         if isinstance(exception, Http404):
             response = technical_404_response(request, exception)
         else:
-            response = self.handle_uncaught_exception(request, sys.exc_info())
+            response = technical_500_response(request, *sys.exc_info())
 
         return response
 
@@ -57,19 +57,23 @@ class ErrorHandle(MiddlewareMixin):
         [Return]:
         WSGIResponse object which content is BaseHandler return or error information
         """
-
-        
         if response is None:
             error_message = "response is None"
             return WSGIResponse(error_message)
         return response
-            
-    def handle_uncaught_exception(self, request, exc_info):
-        return technical_500_response(request, *exc_info)
-
 
 def technical_404_response(request, exception):
-    error_url = request.path_info[1:]
+    """Return a WSGIResponse with status 404 and exception message
+
+    [Keyword argument]:
+    request --- the WSGIRequest object that passed from WSGIHandler
+    exception --- the exception raise from view function or url router
+
+    [Return]:
+    WSGIResponse object which had loaded 404_exception html file with error message
+
+    """
+    error_url = request.path_info
     context = {'request_path':error_url,'reasons':str(exception)}
     
     with Path(CURRENT_DIR, 'templates', 'technical_404.html').open() as fh:
@@ -79,6 +83,17 @@ def technical_404_response(request, exception):
 
 
 def technical_500_response(request, exc_type, exc_value, status_code=500):
+    """Return a WSGIResponse with status 500 and exception message
+
+    [Keyword argument]:
+    request --- the WSGIRequest object that passed from WSGIHandler
+    exc_type --- the type of excetion
+    exc_value --- detailed of exception message
+
+    [Return]: 
+    WSGIResponse object which had loaded 500_exception html file with error message
+    
+    """
     context = {'exc_type':str(exc_type)[1:-1],'exc_value':exc_value}
     
     with Path(CURRENT_DIR, 'templates', 'technical_500.html').open() as fh:

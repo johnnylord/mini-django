@@ -1,9 +1,12 @@
-from middleware.mixin import MiddlewareMixin
-from importlib import import_module
 import re
 import os
 
+from importlib import import_module
+
 from core.handlers.wsgi import WSGIResponseRedirect
+from middleware.mixin import MiddlewareMixin
+from utils.color import Color
+from utils.loggit import register
 
 
 setting_path = os.environ.get('SETTING_MODULE')
@@ -45,6 +48,7 @@ class SecurityMiddleware(MiddlewareMixin):
         self.content_type_nosniff = settings.SECURE_CONTENT_TYPE_NOSNIFF
 
 
+    @register(Color.PURPLE)
     def process_request(self, request):
         """Check the request is HTTPS or HTTP domain,and decide whether redirect to HTTPS domain
 
@@ -53,10 +57,11 @@ class SecurityMiddleware(MiddlewareMixin):
         """
         # if self.redirect and request['HTTP_HOST'] and request['wsgi.url_scheme'] != "https":
         if self.redirect and request.environ['HTTP_HOST'] and request.environ['wsgi.url_scheme'] != "https":
-            host = self.get_host(request.environ)
+            host = self._get_host(request.environ)
             return WSGIResponseRedirect("https://%s" % host)
 
 
+    @register(Color.YELLOW)
     def process_response(self, request, response):
         """Add security header to response  
         
@@ -81,7 +86,7 @@ class SecurityMiddleware(MiddlewareMixin):
         return response
         
 
-    def get_host(self,request):
+    def _get_host(self,request):
         """Get HTTP_HOST from request and check if it is correspond to ALLOWED_HOSTS in settings.py
 
         [Keyword argument]:

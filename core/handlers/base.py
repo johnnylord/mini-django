@@ -30,6 +30,7 @@ class BaseHandler:
     """
     _middleware_chain = None
     _exception_middleware = None
+
     @register(Color.RED)
     def load_middleware(self):
         """Load middleware object and save entry point in _middleware_chain
@@ -46,7 +47,7 @@ class BaseHandler:
         self._exception_middleware = []
 
         #the base layer of middleware to process request
-        handler = self.convert_exception_to_response(self._get_response) 
+        handler = self._convert_exception_to_response(self._get_response) 
 
         for middleware_path in settings.MIDDLEWARE:
             # import_string() return a middleware class
@@ -56,11 +57,12 @@ class BaseHandler:
             if hasattr(mw_instance,'process_exception'):
                 self._exception_middleware.append(mw_instance.process_exception)
             
-            handler = self.convert_exception_to_response(mw_instance)
+            handler = self._convert_exception_to_response(mw_instance)
 
         self._middleware_chain = handler 
         
 
+    @register(Color.RED)
     def get_response(self,request):
         """A interface for WSGIHandler.
 
@@ -122,7 +124,7 @@ class BaseHandler:
 
         return response
 
-    def process_exception_by_middleware(self, exception, request):
+    def _process_exception_by_middleware(self, exception, request):
         """Call process_exception in middleware and get error message response
 
         [Keyword argument]:
@@ -139,7 +141,7 @@ class BaseHandler:
                 return response
 
 
-    def convert_exception_to_response(self, get_response):
+    def _convert_exception_to_response(self, get_response):
         """A wrapper function that handle all exception that get_response rasied 
         
         [Keyword argument]:
@@ -154,6 +156,6 @@ class BaseHandler:
             try:
                 response = get_response(request)
             except Exception as exc:
-                response = self.process_exception_by_middleware(exc, request)
+                response = self._process_exception_by_middleware(exc, request)
             return response
         return inner

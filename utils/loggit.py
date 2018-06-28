@@ -64,7 +64,7 @@ def register(color=Color.GREEN, stream="stdout"):
             now = "["+ datetime.now().strftime("%Y-%m-%d|%H:%M:%S") + "] "
                 
             # Logged function's arg information
-            type_args = [str(type(arg))+":arg" for arg in args]
+            type_args = [str(type(arg)) for arg in args]
             args_text = ', '.join(type_args)
 
             # Logged function's kwargs information

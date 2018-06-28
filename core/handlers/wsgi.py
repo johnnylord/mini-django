@@ -57,7 +57,6 @@ class WSGIRequest:
         
         # Extract the query string
         self.query_string = parse_qs(self._get_query_string(environ))
-        print(self)
 
     def _get_bytes_from_wsgi(self, environ, key, default):
         """Extract the value from the environ with original bytes string

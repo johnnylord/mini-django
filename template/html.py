@@ -4,6 +4,7 @@ import os
 from importlib import import_module
 
 from utils.color import Color
+from utils.loggit import register
 from template.codegen import CodeBuilder
 
 try:
@@ -36,6 +37,7 @@ class HtmlTemplite(object):
         Generate a complete html text file to the user.
     """
 
+    @register(Color.BOLD)
     def __init__(self, fpath, *contexts):
         """Compile the html template file to python source code
 
@@ -303,6 +305,7 @@ class HtmlTemplite(object):
         """
         raise TempliteSyntaxError(message)
         
+    @register(Color.BOLD)
     def render(self, context=None): 
         """Render the html file and return the html file content
 

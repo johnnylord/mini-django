@@ -8,6 +8,8 @@ from core.handlers.wsgi import WSGIResponse
 from template.shortcuts import render
 from template.html import HtmlTemplite
 from core.exceptions import Http404
+from utils.color import Color
+from utils.loggit import register
 
 setting_path = os.environ.get('SETTING_MODULE')
 settings = import_module(setting_path)
@@ -29,6 +31,7 @@ class ErrorHandle(MiddlewareMixin):
         """
         super().__init__(get_response)
 
+    @register(Color.RED)
     def process_exception(self, request, exception):
         """Return exception response, when exception had been rasie
 
@@ -47,6 +50,7 @@ class ErrorHandle(MiddlewareMixin):
 
         return response
 
+    @register(Color.YELLOW)
     def process_response(self, request, response):
         """Process response check whether there is error occur
         

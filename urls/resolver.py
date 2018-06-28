@@ -2,6 +2,8 @@ import sys
 import re
 
 from importlib import import_module
+from utils.color import Color
+from utils.loggit import register
 
 class UrlResolver(object):
     """Help resolve the url routing task
@@ -34,6 +36,7 @@ class UrlResolver(object):
         except:
             raise
 
+    @register(Color.BLUE)
     def resolve_url(self, path):
         """Resolve the url and return the view handler
 
